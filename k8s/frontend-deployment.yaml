@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: snake-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: snake-frontend
+  template:
+    metadata:
+      labels:
+        app: snake-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: dikshat1024/snake-frontend:latest
+          ports:
+            - containerPort: 80
