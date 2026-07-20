@@ -5,7 +5,7 @@ on:
     branches:
       - test
 
-  workflow_dispatch: 
+  workflow_dispatch:
 
 env:
   AWS_REGION: us-east-1
@@ -47,7 +47,6 @@ jobs:
         run: terraform apply -auto-approve
 
       - name: Get EC2 Public IP
-        id: ec2
         working-directory: ${{ env.TF_DIR }}
         run: |
           echo "PUBLIC_IP=$(terraform output -raw public_ip)" >> $GITHUB_ENV
@@ -58,22 +57,34 @@ jobs:
       - name: Configure SSH Key
         run: |
           mkdir -p ~/.ssh
-          printf "${{ secrets.EC2_PRIVATE_KEY }}" > ~/.ssh/ec2.pem
+          printf "%s\n" "${{ secrets.EC2_PRIVATE_KEY }}" > ~/.ssh/ec2.pem
           chmod 600 ~/.ssh/ec2.pem
+
+      - name: Verify SSH Key
+        run: |
+          ls -l ~/.ssh
+          head -2 ~/.ssh/ec2.pem
+          tail -2 ~/.ssh/ec2.pem
+          ssh-keygen -l -f ~/.ssh/ec2.pem
 
       - name: Deploy Application
         run: |
           ssh -o StrictHostKeyChecking=no \
               -i ~/.ssh/ec2.pem \
-              ${SSH_USER}@${PUBLIC_IP} << 'EOF'
+              ${SSH_USER}@${PUBLIC_IP} <<EOF
 
-          sudo apt-get install -y git
+          sudo apt-get update
+
+          if ! command -v git &> /dev/null; then
+            sudo apt-get install -y git
+          fi
 
           if [ ! -d project ]; then
-              git clone https://github.com/ketankakde/snake-game-application.git project
+            git clone https://github.com/ketankakde/snake-game-application.git project
           fi
 
           cd project
 
           docker compose up -d --build
+
           EOF
