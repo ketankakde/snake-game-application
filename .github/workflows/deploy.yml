@@ -1,7 +1,11 @@
 name: Deploy Infrastructure & Application
 
 on:
- workflow_dispatch: 
+  push:
+    branches:
+      - test
+
+  workflow_dispatch: 
 
 env:
   AWS_REGION: us-east-1
