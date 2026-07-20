@@ -57,7 +57,7 @@ jobs:
       - name: Configure SSH Key
         run: |
           mkdir -p ~/.ssh
-          printf "%s\n" "${{ secrets.EC2_PRIVATE_KEY }}" > ~/.ssh/ec2.pem
+          printf "%s\n" "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2.pem
           chmod 600 ~/.ssh/ec2.pem
 
       - name: Verify SSH Key
