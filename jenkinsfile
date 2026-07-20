@@ -1,0 +1,167 @@
+pipeline {
+
+    agent any
+
+    environment {
+        AWS_REGION = "us-east-1"
+        TF_DIR = "terraform"
+        SSH_USER = "ubuntu"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Terraform Init') {
+            steps {
+                dir("${TF_DIR}") {
+                    sh 'terraform init'
+                }
+            }
+        }
+
+        stage('Terraform Validate') {
+            steps {
+                dir("${TF_DIR}") {
+                    sh 'terraform validate'
+                }
+            }
+        }
+
+        stage('Terraform Plan') {
+            steps {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds']
+                ]) {
+
+                    dir("${TF_DIR}") {
+                        sh 'terraform plan'
+                    }
+
+                }
+            }
+        }
+
+        stage('Terraform Apply') {
+            steps {
+
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds']
+                ]) {
+
+                    dir("${TF_DIR}") {
+
+                        sh '''
+                        terraform apply \
+                        -auto-approve
+                        '''
+
+                    }
+
+                }
+
+            }
+        }
+
+        stage('Get EC2 IP') {
+
+            steps {
+
+                script {
+
+                    PUBLIC_IP = sh(
+
+                        script: """
+                        cd terraform
+                        terraform output -raw public_ip
+                        """,
+
+                        returnStdout: true
+
+                    ).trim()
+
+                    echo "EC2 IP : ${PUBLIC_IP}"
+
+                }
+
+            }
+
+        }
+
+        stage('Wait For EC2') {
+
+            steps {
+
+                echo "Waiting for EC2..."
+
+                sleep(time: 60, unit: 'SECONDS')
+
+            }
+
+        }
+
+        stage('Deploy Application') {
+
+            steps {
+
+                sshagent(credentials: ['ec2-key']) {
+
+                    sh """
+
+                    ssh -o StrictHostKeyChecking=no ${SSH_USER}@${PUBLIC_IP} '
+
+                    sudo apt update
+
+                    sudo apt install git -y
+
+                    if [ ! -d project ]; then
+
+                        git clone https://github.com/ketankakde/snake-game-application.git project
+
+                    fi
+
+                    cd project
+
+                    docker compose up -d --build
+
+                    '
+
+                    """
+
+                }
+
+            }
+
+        }
+
+    }
+
+    post {
+
+        success {
+
+            echo "Infrastructure Created Successfully"
+
+            echo "Application Deployed Successfully"
+
+            echo "Frontend : http://${PUBLIC_IP}:80"
+
+            echo "Backend : http://${PUBLIC_IP}:5000"
+
+        }
+
+        failure {
+
+            echo "Pipeline Failed"
+
+        }
+
+    }
+
+}
