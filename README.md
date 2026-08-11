@@ -1,6 +1,7 @@
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=40&pause=1000&color=22C55E&center=true&vCenter=true&width=600&lines=🐍+SNAKE+RUN;Full-Stack+Game+App;DevOps+%7C+Docker+%7C+K8s+%7C+AWS" alt="Typing SVG" />
+# 🐍 SNAKE RUN
+### Full-Stack Game App &nbsp;|&nbsp; DevOps · Docker · K8s · AWS · Terraform · CI/CD
 
 <br/>
 
@@ -372,6 +373,6 @@ curl http://localhost/api/scores
 
 <div align="center">
 
-![Visitors](https://visitor-badge.laobi.icu/badge?page_id=snake-game-application)
+**Snake Run — Play. Compete. Deploy.**
 
-</div> 
+</div>
