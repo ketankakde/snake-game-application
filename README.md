@@ -365,14 +365,3 @@ curl -X POST http://localhost/api/scores \
 ```bash
 curl http://localhost/api/scores
 ```
-
----
-
-
----
-
-<div align="center">
-
-**Snake Run — Play. Compete. Deploy.**
-
-</div>
